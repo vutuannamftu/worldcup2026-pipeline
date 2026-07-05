@@ -3,8 +3,7 @@ import requests
 from ingestion.config import API_FOOTBALL_KEY, API_FOOTBALL_BASE_URL
 
 HEADERS = {
-    "x-rapidapi-key": API_FOOTBALL_KEY,
-    "x-rapidapi-host": "v3.football.api-sports.io",
+    "x-apisports-key": API_FOOTBALL_KEY,
 }
 
 # API-Football free tier: 10 requests/minute, 100/day
