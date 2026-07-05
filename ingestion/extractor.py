@@ -11,9 +11,13 @@ FINISHED_STATUSES = {"FT", "AET", "PEN"}
 
 
 def run_fixtures():
-    """Lấy danh sách tất cả trận World Cup 2026, lưu vào bronze_fixtures."""
-    log.info("Fetching fixtures for WC2026...")
-    fixtures = api_client.get_fixtures(WC_LEAGUE_ID, WC_SEASON)
+    """Lấy danh sách tất cả trận World Cup, lưu vào bronze_fixtures."""
+    log.info("Fetching fixtures for WC%s...", WC_SEASON)
+    try:
+        fixtures = api_client.get_fixtures(WC_LEAGUE_ID, WC_SEASON)
+    except DailyLimitReached:
+        log.warning("Daily API quota exhausted while fetching fixtures. Will retry tomorrow.")
+        return []
     log.info(f"Got {len(fixtures)} fixtures")
     bronze.save_fixtures(fixtures)
     log.info("Saved fixtures to bronze")
@@ -26,7 +30,11 @@ def run_match_details(fixtures: list[dict] | None = None):
     lấy lineups + statistics + player stats.
     """
     if fixtures is None:
-        fixtures = api_client.get_fixtures(WC_LEAGUE_ID, WC_SEASON)
+        try:
+            fixtures = api_client.get_fixtures(WC_LEAGUE_ID, WC_SEASON)
+        except DailyLimitReached:
+            log.warning("Daily API quota exhausted while fetching fixtures. Will retry tomorrow.")
+            return 0
 
     finished = [
         f for f in fixtures
