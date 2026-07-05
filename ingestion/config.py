@@ -7,7 +7,7 @@ API_FOOTBALL_BASE_URL = f"https://{API_FOOTBALL_HOST}"
 
 # World Cup 2026
 WC_LEAGUE_ID = 1
-WC_SEASON = 2026
+WC_SEASON = 2022  # Free tier chỉ hỗ trợ 2022-2024; đổi lại 2026 khi upgrade plan
 
 # PostgreSQL project database
 DB_CONFIG = {

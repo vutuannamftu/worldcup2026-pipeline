@@ -13,8 +13,8 @@ with DAG(
     dag_id="worldcup_bronze_ingestion",
     description="Daily ingestion of World Cup 2026 data from API-Football into Bronze layer",
     schedule_interval="0 8 * * *",  # 8:00 AM UTC mỗi ngày (~3 PM Vietnam time)
-    start_date=datetime(2026, 6, 11),
-    end_date=datetime(2026, 7, 20),
+    start_date=datetime(2022, 11, 20),
+    end_date=datetime(2022, 12, 18),
     catchup=False,
     default_args=default_args,
     tags=["worldcup", "ingestion", "bronze"],
