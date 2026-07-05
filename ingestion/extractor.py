@@ -1,5 +1,6 @@
 import logging
 from ingestion import api_client, bronze
+from ingestion.api_client import DailyLimitReached
 from ingestion.config import WC_LEAGUE_ID, WC_SEASON
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -43,14 +44,19 @@ def run_match_details(fixtures: list[dict] | None = None):
 
         log.info(f"Processing fixture {fixture_id}...")
 
-        lineups = api_client.get_lineups(fixture_id)
-        bronze.save_lineups(fixture_id, lineups)
+        try:
+            lineups = api_client.get_lineups(fixture_id)
+            bronze.save_lineups(fixture_id, lineups)
 
-        stats = api_client.get_statistics(fixture_id)
-        bronze.save_statistics(fixture_id, stats)
+            stats = api_client.get_statistics(fixture_id)
+            bronze.save_statistics(fixture_id, stats)
 
-        player_stats = api_client.get_player_stats(fixture_id)
-        bronze.save_player_stats(fixture_id, player_stats)
+            player_stats = api_client.get_player_stats(fixture_id)
+            bronze.save_player_stats(fixture_id, player_stats)
+
+        except DailyLimitReached:
+            log.warning(f"Daily API quota exhausted after {processed} fixtures. Will continue tomorrow.")
+            break
 
         bronze.update_watermark("match_details", fixture_id)
         processed += 1

@@ -5,6 +5,12 @@ from ingestion.config import API_FOOTBALL_KEY, API_FOOTBALL_BASE_URL
 
 log = logging.getLogger(__name__)
 
+
+class DailyLimitReached(Exception):
+    """Raised khi API-Football báo hết quota ngày hôm nay."""
+    pass
+
+
 HEADERS = {
     "x-apisports-key": API_FOOTBALL_KEY,
 }
@@ -31,6 +37,9 @@ def _get(endpoint: str, params: dict) -> dict:
 
         errors = data.get("errors", {})
         if errors:
+            error_str = str(errors)
+            if "request limit" in error_str.lower() or "upgrade your plan" in error_str.lower():
+                raise DailyLimitReached(f"Daily API quota exhausted on {endpoint}")
             raise ValueError(f"API error on {endpoint}: {errors}")
 
         time.sleep(REQUEST_DELAY)
