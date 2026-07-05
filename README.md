@@ -55,14 +55,27 @@ dim_team, dim_player, dim_match, dim_stadium, dim_date, dim_stage, dim_referee, 
 
 ## Project Progress
 
+> Cập nhật lần cuối: 2026-07-01
+
+### ✅ Infrastructure (Hoàn thành)
+- [x] Tạo cấu trúc folder project (ingestion, dbt, orchestration, docker, data/bronze/silver/gold)
+- [x] Tạo GitHub repo: https://github.com/vutuannamftu/worldcup2026-pipeline
+- [x] Thuê VPS Ubuntu 22.04 (IP: `103.72.57.74`, 34GB disk, deploy user với SSH key)
+- [x] Cài Docker + Docker Compose trên VPS
+- [x] Cấu hình firewall (ufw): SSH/8080/5432/8088
+- [x] Docker Compose stack chạy ổn định: PostgreSQL (project DB + Airflow metadata) + Airflow webserver/scheduler
+- [x] Airflow UI truy cập được tại `http://103.72.57.74:8080` (admin: `vutuannam2105`)
+- [x] PostgreSQL project DB expose port 5432 (có thể connect từ DBeaver/Python)
+
 ### Phase 1 — Ingestion (Bronze)
-- [ ] Setup API-Football client
-- [ ] Script lấy fixtures, lineups, statistics, players
-- [ ] Lưu raw JSON vào Bronze layer
+- [ ] Đăng ký API key từ API-Football (api-sports.io)
+- [ ] Viết API client Python (fixtures, lineups, statistics, players)
+- [ ] Script lưu raw JSON vào Bronze layer
+- [ ] Ingestion từ football-data.org (đối chiếu)
 - [ ] Multi-source ingestion (3 nguồn)
 
 ### Phase 2 — Incremental Loading
-- [ ] Watermark control table
+- [ ] Watermark control table trong PostgreSQL
 - [ ] Logic chỉ lấy trận mới mỗi ngày
 - [ ] Xử lý trận đang diễn ra vs đã kết thúc
 
@@ -77,26 +90,30 @@ dim_team, dim_player, dim_match, dim_stadium, dim_date, dim_stage, dim_referee, 
 - [ ] Marts cho dashboard
 
 ### Phase 5 — Orchestration
-- [ ] Airflow DAGs chạy theo lịch
-- [ ] Retry logic + alerting
-- [ ] Deploy trên VPS
+- [x] Deploy Airflow trên VPS (Docker Compose, LocalExecutor)
+- [ ] Viết Airflow DAGs cho ingestion pipeline
+- [ ] Retry logic + alerting (email/Slack)
+- [ ] Schedule chạy daily
 
 ### Phase 6 — Visualization
+- [ ] Kết nối BI tool với PostgreSQL project DB
 - [ ] Dashboard: BXH, top scorer, team comparison
 - [ ] So sánh vòng bảng vs knockout
 
 ### Phase 7 — Hoàn thiện
-- [ ] README + sơ đồ kiến trúc
-- [ ] Push GitHub
-- [ ] CI chạy dbt test
+- [ ] Cập nhật README + sơ đồ kiến trúc
+- [ ] CI chạy dbt test tự động (GitHub Actions)
 
 ## Deployment Notes
 
-**VPS Setup:**
-- Deploy toàn bộ pipeline trên VPS (không phụ thuộc máy local)
-- Truy cập database từ bất kỳ đâu
-- Airflow webserver accessible qua IP/domain
-- Docker Compose để quản lý services
+**VPS:**
+- Ubuntu 22.04, IP: `103.72.57.74`
+- User: `deploy` (sudo, SSH key auth)
+- Repo clone tại: `~/worldcup2026-pipeline/`
+- Stack: `cd ~/worldcup2026-pipeline/docker && docker compose up -d`
+- File `.env` nằm trong `docker/` (quan trọng: không phải thư mục gốc)
+- Airflow UI: `http://103.72.57.74:8080`
+- PostgreSQL project DB: `103.72.57.74:5432` (DB: `worldcup2026`)
 
 ## Điểm nhấn Portfolio
 
