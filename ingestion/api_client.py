@@ -1,27 +1,42 @@
 import time
+import logging
 import requests
 from ingestion.config import API_FOOTBALL_KEY, API_FOOTBALL_BASE_URL
+
+log = logging.getLogger(__name__)
 
 HEADERS = {
     "x-apisports-key": API_FOOTBALL_KEY,
 }
 
-# API-Football free tier: 10 requests/minute, 100/day
-REQUEST_DELAY = 6  # giây giữa mỗi request để tránh rate limit
+# Free tier: 10 requests/minute, 100/day
+REQUEST_DELAY = 7  # giây giữa mỗi request (7s = ~8.5 req/phút, an toàn hơn 6s)
+MAX_RETRIES = 3
 
 
 def _get(endpoint: str, params: dict) -> dict:
     url = f"{API_FOOTBALL_BASE_URL}/{endpoint}"
-    response = requests.get(url, headers=HEADERS, params=params, timeout=30)
-    response.raise_for_status()
-    data = response.json()
 
-    errors = data.get("errors", {})
-    if errors:
-        raise ValueError(f"API error on {endpoint}: {errors}")
+    for attempt in range(MAX_RETRIES):
+        response = requests.get(url, headers=HEADERS, params=params, timeout=30)
 
-    time.sleep(REQUEST_DELAY)
-    return data
+        if response.status_code == 429:
+            wait = 65  # đợi 65s để reset rate limit window
+            log.warning(f"429 Too Many Requests on {endpoint}, waiting {wait}s (attempt {attempt+1}/{MAX_RETRIES})")
+            time.sleep(wait)
+            continue
+
+        response.raise_for_status()
+        data = response.json()
+
+        errors = data.get("errors", {})
+        if errors:
+            raise ValueError(f"API error on {endpoint}: {errors}")
+
+        time.sleep(REQUEST_DELAY)
+        return data
+
+    raise RuntimeError(f"Failed after {MAX_RETRIES} retries on {endpoint}")
 
 
 def get_fixtures(league_id: int, season: int) -> list[dict]:
